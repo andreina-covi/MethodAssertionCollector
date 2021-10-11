@@ -1,6 +1,6 @@
 # MethodAssertionCollector
 
-##Installation
+## Installation
 
 ```Smalltalk
  Metacello new

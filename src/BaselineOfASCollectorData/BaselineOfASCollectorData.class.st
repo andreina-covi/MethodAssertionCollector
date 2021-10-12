@@ -1,6 +1,6 @@
 Class {
 	#name : #BaselineOfASCollectorData,
-	#superclass : #Object,
+	#superclass : #BaselineOf,
 	#category : #BaselineOfASCollectorData
 }
 

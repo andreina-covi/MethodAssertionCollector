@@ -4,8 +4,9 @@ Class {
 	#instVars : [
 		'sourceCode',
 		'updatedText',
-		'result',
-		'recommender'
+		'recommender',
+		'newCode',
+		'assertions'
 	],
 	#category : #ASCollectorData
 }
@@ -22,16 +23,17 @@ ASPage class >> contextRoot [
 ]
 
 { #category : #initialization }
-ASPage >> initialize [ 
+ASPage >> initialize [
 	super initialize.
 	sourceCode := ''.
-	result := nil.
+	newCode := ''.
 	updatedText := false.
-	recommender := ASRecommendation new
+	recommender := ASRecommendator new.
+	assertions := OrderedCollection new
 ]
 
 { #category : #rendering }
-ASPage >> renderContentOn: html [ 
+ASPage >> renderContentOn: html [
 	html
 		form: [ html
 				containerFluid: [ html
@@ -41,8 +43,7 @@ ASPage >> renderContentOn: html [
 						heading: 'Smalltalk - Assertion suggestion tool';
 						horizontalRule.
 					html listGroup beHorizontal
-						with: [ 
-							html listGroupItem
+						with: [ html listGroupItem
 								flexFill;
 								with: [ html textArea
 										style: 'height: 400px; min-width: 100%';
@@ -56,7 +57,7 @@ ASPage >> renderContentOn: html [
 								with: [ html paragraph
 										style: 'height: 400px; min-width: 100%';
 										with: [ updatedText
-												ifTrue: [ html html: (RBSimpleFormatter format: result ost) ] ] ] ].
+												ifTrue: [ html html: (ASHTMLFormatter format: newCode withAssertions: assertions) ] ] ] ].
 					html break.
 					html formButton bePrimary
 						callback: [ self suggestAssertions ];
@@ -70,17 +71,23 @@ ASPage >> style [
 
 { #category : #'as yet unclassified' }
 ASPage >> suggestAssertions [
-	
-	| ast assertions |
+	| ast |
 	ast := RBParser parseMethod: sourceCode.
-	assertions := self suggestAssertions: ast arguments.
-	self update: ast with: assertions
+	assertions := self suggestAssertions: (ast arguments collect: #name).
+	self updatePage: ast
 ]
 
 { #category : #'as yet unclassified' }
 ASPage >> suggestAssertions: collection [
-	^ collection collect: [ :string |
-		recommender suggestAssertion: string
-		 ]
-	
+	^ collection
+		flatCollect: [ :string | recommender suggestAssertion: string ]
+]
+
+{ #category : #updating }
+ASPage >> updatePage: ast [
+	(assertions isCollection and: [ assertions notEmpty ])
+		ifFalse: [ newCode := ast.
+			^ self ].
+	ast body addNodesFirst: assertions.
+	newCode := ast	"RBSimpleFormatter format:"
 ]

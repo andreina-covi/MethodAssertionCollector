@@ -13,10 +13,10 @@ BaselineOfASSuggesterAssertion >> baseline: spec [
 				baseline: 'NeoCSV'
 				with: [ spec repository: 'github://svenvc/NeoCSV/repository' ].
 			spec
-				baseline: 'Bootstrap4';
+				baseline: 'Bootstrap4'
 				with: [ spec repository: 'github://astares/Seaside-Bootstrap4:master/src' ].
 			spec
-				baseline: 'DataFrame';
+				baseline: 'DataFrame'
 				with: [ spec repository: 'github://PolyMathOrg/DataFrame/src' ].
 			spec
 				package: 'ASSuggesterAssertion'

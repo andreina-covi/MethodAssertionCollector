@@ -43,10 +43,13 @@ ASPage >> renderContentOn: html [
 					html
 						heading: 'Smalltalk - Assertion suggestion tool';
 						horizontalRule.
+					html
+						paragraph:
+							'This tool generates assertions according to the names of the arguments of a method. Enter a Smalltalk method in the left pane.'.
 					html row
 						with: [ html column variableWidth
 								with: [ html textArea
-										style: 'height: 100%; min-width: 100%; overflow:auto';
+										style: 'min-height: 500px; min-width: 100%; overflow:auto';
 										value: sourceCode;
 										callback: [ :text | 
 											text ~= sourceCode
@@ -54,7 +57,7 @@ ASPage >> renderContentOn: html [
 											sourceCode := text ] ].
 							html column variableWidth
 								with: [ html paragraph
-										style: 'height: 100%; min-width: 100%; overflow:auto';
+										style: 'height: 500px; min-width: 100%; overflow:auto';
 										with: [ updatedText
 												ifTrue: [ html html: (ASHTMLFormatter format: newCode) ] ] ] ].
 					html break.
@@ -65,7 +68,7 @@ ASPage >> renderContentOn: html [
 	footer attributes addClass: 'text-center text-lg-start text-muted'.
 	footer
 		with:
-			[ "attributes: #(class 'text-center text-lg-start bg-light text-muted')"
+			[
 			html text: '© 2021 Copyright:'.
 			html anchor
 				class: 'text-reset fw-bold';

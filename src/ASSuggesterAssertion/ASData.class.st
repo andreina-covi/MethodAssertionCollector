@@ -17,10 +17,7 @@ ASData >> associations [
 ASData >> at: association at: string put: collection [
 	self assert: association notNil.
 	self assert: (string notNil and: [ string notEmpty ]).
-	data
-		at: association
-		ifAbsentPut: [ Dictionary new ].
-		"ifAbsent: [ self error: 'Error to add the collection. review the data' ]."
+	data at: association ifAbsentPut: [ Dictionary new ].
 	(data at: association)
 		at: string
 		ifAbsentPut: [ OrderedCollection new ].
@@ -49,7 +46,6 @@ ASData >> process [
 	data associations
 		do: [ :assoc | 
 			| res freqs |
-			"col := self collectionAt: assoc key."
 			freqs := assoc value associations
 				flatCollect: [ :ass | 
 					ass value
@@ -62,7 +58,6 @@ ASData >> process [
 							visitor revertVariableName.
 							ast acceptVisitor: visitor.
 							fCode ] ].
-			"freqs := visitor collection."
 			res := Dictionary new.
 			freqs
 				do:

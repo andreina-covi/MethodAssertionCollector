@@ -57,8 +57,7 @@ ASDataProcessor >> groupByUnaryMessage: ast given: string [
 
 { #category : #initialization }
 ASDataProcessor >> initialize [
-	data := ASData new 
-	"Dictionary new"
+	data := ASData new
 ]
 
 { #category : #'as yet unclassified' }
@@ -67,19 +66,15 @@ ASDataProcessor >> processAndAddToData: string1 given: string2 and: association 
 	ast := RBParser parseExpression: string1.
 	collection := self groupByUnaryMessage: ast given: string2.
 	collection
-		ifNotEmpty: [ data at: association at: string2 put: collection " ifAbsentPut: Dictionary new.
-			(data at: string3)
-				at: string2
-				ifAbsentPut: [ OrderedCollection new ].
-			((data at: string3) at: string2) addAll: collection" ]
+		ifNotEmpty:
+			[ data at: association at: string2 put: collection ]
 ]
 
 { #category : #'as yet unclassified' }
 ASDataProcessor >> processAndCreateData: fileReference [
 	| df |
 	df := self readDataFrameFrom: fileReference.
-	df asArrayOfRows do: [ :serie | self classifyByPatternOn: serie ].
-	"data process"
+	df asArrayOfRows do: [ :serie | self classifyByPatternOn: serie ]
 ]
 
 { #category : #'as yet unclassified' }

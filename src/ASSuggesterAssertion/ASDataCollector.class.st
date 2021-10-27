@@ -41,10 +41,9 @@ ASDataCollector >> collectAssertions: class ofMethod: selector given: set [
 
 { #category : #'as yet unclassified' }
 ASDataCollector >> collectAssertionsOfClass: class with: set [
-	
-	^ class selectors "(class selectors reject: [ :selector | selector beginsWith: 'test' ])"
-	flatCollect: [ :selector | 
-		self collectAssertions: class ofMethod: selector given: set ]
+	^ class selectors
+		flatCollect:
+			[ :selector | self collectAssertions: class ofMethod: selector given: set ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -54,11 +53,9 @@ ASDataCollector >> collectData [
 	classes := self selectClassesOfPackages.
 	collection := OrderedCollection new.
 	vars := Set new.
-	classes do: [ :cls | 
-		collection addAll: (self collectAssertionsOfClass: cls with: vars)
-	].
-	"collection := self splitByArguments: collection.
-	^ (self filterAssertionBody: collection) asOrderedCollection"
+	classes
+		do:
+			[ :cls | collection addAll: (self collectAssertionsOfClass: cls with: vars) ].
 	^ collection
 ]
 
@@ -112,22 +109,21 @@ ASDataCollector >> saveOnCsvFile: filename data: data [
 { #category : #'as yet unclassified' }
 ASDataCollector >> selectClassesOfPackages [
 	| packages |
-	self assert: packageScope notEmpty description: 'Define the package scope'.
-	packages := RPackageOrganizer default packages select: [ :p | 
-		            packageScope match: p name asString ].
-	^ (packages flatCollect: [ :package | 
-		   | extensionNames |
-		   extensionNames := OrderedCollection new
-			                     "addAll:
-				                     package metaclassExtensionSelectors keys;
-			                     addAll: package classExtensionSelectors keys;
-			                     yourself".
-		   package classes reject: [ :cl | 
-			   cl isTrait or: [ 
-				   (extensionNames includes: cl name) or: [ cl isMeta or: [ cl isTestCase ] ] ] ] ]
-		"package classes]")
-		  asSet asOrderedCollection sort: [ :cl1 :cl2 |
-		  cl1 name < cl2 name ]
+	self
+		assert: packageScope notEmpty
+		description: 'Define the package scope'.
+	packages := RPackageOrganizer default packages
+		select: [ :p | packageScope match: p name asString ].
+	^ (packages
+		flatCollect: [ :package |
+			| extensionNames |
+			extensionNames := OrderedCollection new.
+			package classes
+				reject: [ :cl | 
+					cl isTrait
+						or: [ (extensionNames includes: cl name)
+								or: [ cl isMeta or: [ cl isTestCase ] ] ] ] ]) asSet
+		asOrderedCollection sort: [ :cl1 :cl2 | cl1 name < cl2 name ]
 ]
 
 { #category : #'as yet unclassified' }

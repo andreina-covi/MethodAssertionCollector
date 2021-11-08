@@ -42,10 +42,9 @@ ASPage >> renderContentOn: html [
 						break.
 					html
 						heading: 'Smalltalk - Assertion suggestion tool';
+						text:
+							'This tool generates assertions according to the names of the arguments of a method. Enter a Smalltalk method in the left pane.';
 						horizontalRule.
-					html
-						paragraph:
-							'This tool generates assertions according to the names of the arguments of a method. Enter a Smalltalk method in the left pane.'.
 					html row
 						with: [ html column variableWidth
 								with: [ html textArea
@@ -67,10 +66,13 @@ ASPage >> renderContentOn: html [
 	footer := html tag: 'footer'.
 	footer attributes addClass: 'text-center text-lg-start text-muted'.
 	footer
-		with:
-			[
-			html text: '© 2021 Copyright:'.
-			html anchor
+		with: [ html text: '© 2021 '.
+			html anchor targetBlank 
+				class: 'text-reset fw-bold';
+				url: 'https://www.uchile.cl';
+				with: 'Universidad de Chile'.
+			html text: ' - '.
+			html anchor targetBlank 
 				class: 'text-reset fw-bold';
 				url: 'http://objectprofile.com/';
 				with: 'ObjectProfile' ]

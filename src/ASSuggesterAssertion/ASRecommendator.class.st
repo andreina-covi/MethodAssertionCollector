@@ -7,7 +7,8 @@ Class {
 		'dataProcessor',
 		'fileReference',
 		'dataOccurrences',
-		'rules'
+		'rules',
+		'dictOfTransformations'
 	],
 	#category : #'ASSuggesterAssertion-Suggester'
 }
@@ -64,26 +65,42 @@ ASRecommendator >> collectMessages: string1 given: string2 [
 	^ self
 		rulesAt: string1
 		ifPresent: [ :block | block value: string2 ]
-		ifAbsent: [ | selectors |
+		ifAbsent: [ | selectors transformedStr |
+			transformedStr := self transformIfNecessary: string1.
 			selectors := (Smalltalk allClasses
 				select: [ :cls | 
 					| bool intervals matcher regex clsName |
 					clsName := cls name.
-					bool := string1 matchesRegexIgnoringCase: '\w*' , clsName , '\w*'.
+					bool := transformedStr matchesRegexIgnoringCase: '\w*' , clsName , '\w*'.
 					bool
 						ifFalse: [ matcher := RxMatcher forString: '^[A-Z]+'.
 							intervals := matcher matchingRangesIn: clsName.
 							intervals
-								ifEmpty: [ bool := false ]
 								ifNotEmpty: [ regex := clsName copyFrom: intervals first last to: clsName size.
-									bool := string1
+									bool := transformedStr
 										matchesRegexIgnoringCase: '\w*' , regex , '\w*' ] ].
 					bool ])
 				flatCollect: [ :cls | 
 					cls methods
-						select: [ :mth | (#(#testing #queries) includes: mth protocol) and: [ mth selector isUnary ] ]
+						select: [ :mth | 
+							(#(#testing #queries) includes: mth protocol)
+								and: [ mth selector isUnary ] ]
 						thenCollect: [ :mth | mth selector ] ].
 			self messagesGiven: selectors and: string2 ]
+]
+
+{ #category : #initialization }
+ASRecommendator >> initialize [ 
+	dictOfTransformations := self initializeDictOfTransformations
+]
+
+{ #category : #initialization }
+ASRecommendator >> initializeDictOfTransformations [
+	^ Dictionary new 
+		at: '\w*[pP]osition' put: 'point';
+		at: '\w*[sS]elector' put: 'symbol';
+		at: '\w*[tT]ext' put: 'string';
+		yourself
 ]
 
 { #category : #'as yet unclassified' }
@@ -99,6 +116,11 @@ ASRecommendator >> messagesGiven: collection and: string [
 ]
 
 { #category : #'as yet unclassified' }
+ASRecommendator >> messagesOfBoolean: string [
+	^ self messagesGiven: #('isKindOf: Boolean') and: string
+]
+
+{ #category : #'as yet unclassified' }
 ASRecommendator >> messagesOfCollection: string [
 	^ self
 				messagesGiven: #('isNotNil' 'isCollection' 'isNotEmpty' 'isEmpty')
@@ -110,6 +132,11 @@ ASRecommendator >> messagesOfInteger: string [
 	^ self
 				messagesGiven: #('isInteger' '> 0' '>= 0' 'isNotNil')
 				and: string
+]
+
+{ #category : #'as yet unclassified' }
+ASRecommendator >> messagesOfObject: string [
+	^ self messagesGiven: #('isNotNil') and: string
 ]
 
 { #category : #'as yet unclassified' }
@@ -134,6 +161,10 @@ ASRecommendator >> rules [
 					put: [ :string | self messagessOfNumber: string ];
 				at: '\w*[sS]tring\w*'
 					put: [ :string | self messagesOfString: string ];
+				at: '\w*[oO]bject\w*'
+					put: [ :string | self messagesOfObject: string ];
+				at: '\w*[bB]oolean\w*'
+					put: [ :string | self messagesOfBoolean: string ];
 				at: '\w*[cC]ollection\w*'
 					put: [ :string | self messagesOfCollection: string ];
 				yourself ].
@@ -142,9 +173,10 @@ ASRecommendator >> rules [
 
 { #category : #accessing }
 ASRecommendator >> rulesAt: string ifPresent: block1 ifAbsent: block2 [
-	^ self rules associations detect: [ :assoc | string matchesRegex: assoc key ] 
-	ifFound: [ :assoc | block1 value: assoc value ]
-	ifNone: [ block2 value ]
+	^ self rules associations
+		detect: [ :assoc | string matchesRegex: assoc key ]
+		ifFound: [ :assoc | block1 value: assoc value ]
+		ifNone: [ block2 value ]
 ]
 
 { #category : #'as yet unclassified' }
@@ -158,15 +190,27 @@ ASRecommendator >> suggestAssertions: string [
 					(self
 						collectAssertionsOfCollectionsOf: (string copyFrom: ranges last last to: string size)
 						given: string) ].
-	(string matchesRegex: '\w+s$')
+	((string matchesRegex: '\w+s$')
+		and: [ (string endsWith: 'class') not
+				and: [ (string endsWith: 'Class') not ] ])
 		ifTrue: [ | colType |
 			colType := self
 				collectAssertionsOfCollectionsOf: (string copyFrom: 1 to: string size - 1)
 				given: string.
-			colType
-				ifNotEmpty: [ coll := (self collectAssertions: 'collection' given: string)
-						union: colType ] ].
+			"colType
+				ifNotEmpty: ["
+			coll := (self collectAssertions: 'collection' given: string)
+				union: colType	"]" ].
 	(coll isNil or: [ coll isEmpty ])
-		ifTrue: [ coll := self collectAssertions: string given: string ].
+		ifTrue: [ 
+			coll := self collectAssertions: string given: string ].
 	^ coll
+]
+
+{ #category : #'as yet unclassified' }
+ASRecommendator >> transformIfNecessary: string [
+	^ dictOfTransformations associations
+		detect: [ :assoc | string matchesRegex: assoc key ]
+		ifFound: [ :assoc | assoc value ]
+		ifNone: [ string ]
 ]
